@@ -1,0 +1,33 @@
+name: Validate Terraform manifests
+
+on:
+  pull_request:
+
+jobs:
+  terraform:
+    name: terraform
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_version: 1.0.4
+
+      - name: Ensure Terraform code is formated
+        run: terraform fmt -check
+
+      - name: Remove backend file
+        run: rm -f terraform.tf
+  
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Create terraform workspace
+        run: terraform workspace new loki@staging@10.11.0.0@eu-central-1
+
+      - name: Validate Terraform code
+        run: terraform validate -no-color
+
