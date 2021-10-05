@@ -4,7 +4,7 @@ locals {
   requester_vpc_id                        = one(data.aws_vpc.requester[*].id)
   requester_route_table_ids               = length(var.requester_route_table_ids) > 0 ? sort(var.requester_route_table_ids) : try(distinct(sort(data.aws_route_table.requester.*.route_table_id)), [])
   requester_route_table_ids_count         = var.requester_route_tables_count != null ? var.requester_route_tables_count : length(local.requester_route_table_ids)
-  requester_cidr_block_associations       = flatten(data.aws_vpc.requester[*].cidr_block_associations[*].cidr_block)
+  requester_cidr_block_associations       = length(var.requester_vpc_cidr_blocks) > 0 ? sort(var.requester_vpc_cidr_blocks) : flatten(data.aws_vpc.requester[*].cidr_block_associations[*].cidr_block)
   requester_cidr_block_associations_count = length(local.requester_cidr_block_associations)
 
   # Options can't be set until the connection has been accepted and is active,
