@@ -12,7 +12,7 @@ locals {
 
 module "accepter" {
   source  = "cloudposse/label/null"
-  version = "0.24.1"
+  version = "0.25.0"
 
   attributes = var.add_attribute_tag ? ["accepter"] : []
   tags       = var.add_attribute_tag ? { "Side" = "accepter" } : {}
