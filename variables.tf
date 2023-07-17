@@ -112,12 +112,6 @@ variable "requester_allow_remote_vpc_dns_resolution" {
   description = "Allow requester VPC to resolve public DNS hostnames to private IP addresses when queried from instances in the accepter VPC"
 }
 
-variable "skip_metadata_api_check" {
-  type        = bool
-  default     = false
-  description = "Don't use the credentials of EC2 instance profile"
-}
-
 variable "add_attribute_tag" {
   type        = bool
   default     = true
