@@ -1,8 +1,8 @@
 locals {
-  requester_subnet_ids                    = length(var.requester_subnet_ids) > 0 ? sort(var.requester_subnet_ids) : try(distinct(sort(flatten(data.aws_subnet_ids.requester[*].ids))), [])
+  requester_subnet_ids                    = length(var.requester_subnet_ids) > 0 ? sort(var.requester_subnet_ids) : try(distinct(sort(flatten(data.aws_subnets.requester[*].ids))), [])
   requester_subnet_ids_count              = var.requester_subnets_count != null ? var.requester_subnets_count : length(local.requester_subnet_ids)
   requester_vpc_id                        = one(data.aws_vpc.requester[*].id)
-  requester_route_table_ids               = length(var.requester_route_table_ids) > 0 ? sort(var.requester_route_table_ids) : try(distinct(sort(data.aws_route_table.requester.*.route_table_id)), [])
+  requester_route_table_ids               = length(var.requester_route_table_ids) > 0 ? sort(var.requester_route_table_ids) : try(distinct(sort(data.aws_route_table.requester[*].route_table_id)), [])
   requester_route_table_ids_count         = var.requester_route_tables_count != null ? var.requester_route_tables_count : length(local.requester_route_table_ids)
   requester_cidr_block_associations       = length(var.requester_vpc_cidr_blocks) > 0 ? sort(var.requester_vpc_cidr_blocks) : flatten(data.aws_vpc.requester[*].cidr_block_associations[*].cidr_block)
   requester_cidr_block_associations_count = length(local.requester_cidr_block_associations)
@@ -21,16 +21,6 @@ module "requester" {
   context    = module.this.context
 }
 
-data "aws_caller_identity" "requester" {
-  count    = local.count
-  provider = aws.requester
-}
-
-data "aws_region" "requester" {
-  count    = local.count
-  provider = aws.requester
-}
-
 # Lookup requester VPC so that we can reference the CIDR
 data "aws_vpc" "requester" {
   count    = local.count
@@ -40,11 +30,16 @@ data "aws_vpc" "requester" {
 }
 
 # Lookup requester subnets
-data "aws_subnet_ids" "requester" {
+data "aws_subnets" "requester" {
   count    = local.count
   provider = aws.requester
-  vpc_id   = local.requester_vpc_id
-  tags     = var.requester_subnet_tags
+
+  filter {
+    name   = "vpc-id"
+    values = [local.requester_vpc_id]
+  }
+
+  tags = var.requester_subnet_tags
 }
 
 # Lookup requester route tables
@@ -60,7 +55,6 @@ resource "aws_vpc_peering_connection" "requester" {
   vpc_id        = local.requester_vpc_id
   peer_vpc_id   = local.accepter_vpc_id
   peer_owner_id = local.accepter_account_id
-  peer_region   = local.accepter_region
   auto_accept   = false
 
   tags = module.requester.tags
